@@ -4,6 +4,7 @@ declare(strict_types=1);
 use App\Application;
 use App\Application\Account\UseCase\TwitchAuth;
 use App\Domain\Account\AccountRepositoryInterface;
+use App\Http\Controller\HomeController;
 use App\Http\Router\Router;
 use App\Infrastructure\Database\ConnectionFactory;
 use App\Infrastructure\Persistence\MySQL\Account\AccountRepository;
@@ -45,6 +46,10 @@ $container->set(AuthController::class, function (Container $c) {
         $c->get(TwitchApiClient::class),
         $c->get(TwitchAuth::class)
     );
+});
+
+$container->set(HomeController::class, function () {
+    return new HomeController();
 });
 
 $container->set(Router::class, function () {
