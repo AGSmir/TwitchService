@@ -19,7 +19,6 @@ readonly class AuthController
     {
     }
 
-    #[NoReturn]
     public function login(): void
     {
         $url = $this->twitchApi->getAuthUrl();
