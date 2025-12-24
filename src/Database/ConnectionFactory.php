@@ -1,25 +1,27 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Infrastructure\Database;
+namespace App\Database;
 
 use PDO;
 use PDOException;
 
 class ConnectionFactory
 {
-    public function create(): PDO
+    public function create(DatabaseConfig $config): PDO
     {
         $dsn = sprintf(
             'mysql:host=%s;dbname=%s;charset=%s',
-            DB_CONFIG['host'], DB_CONFIG['database'], DB_CONFIG['charset']
+            $config->host,
+            $config->database,
+            $config->charset
         );
 
         try {
             return new PDO(
                 $dsn,
-                DB_CONFIG['user'],
-                DB_CONFIG['password'],
+                $config->user,
+                $config->password,
                 [
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,

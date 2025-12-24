@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Shared\Container;
+namespace App\Container;
 
 
 use Psr\Container\ContainerInterface;

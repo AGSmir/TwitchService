@@ -4,7 +4,9 @@ declare(strict_types=1);
 namespace App;
 
 use App\Http\Router\Router;
+use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
+use Psr\Container\NotFoundExceptionInterface;
 
 readonly class Application
 {
@@ -13,6 +15,10 @@ readonly class Application
     ) {
     }
 
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     public function run(): void
     {
         /** @var Router $router */

@@ -1,9 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Infrastructure\Twitch;
+namespace App\Lib\Twitch;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 use RuntimeException;
 
 class TwitchApiClient
@@ -31,6 +32,9 @@ class TwitchApiClient
         return self::AUTH_URL . '?' . http_build_query($params);
     }
 
+    /**
+     * @throws GuzzleException
+     */
     public function exchangeCodeForToken(string $code): array
     {
         $response = $this->httpClient->post(self::TOKEN_URL, [
@@ -46,6 +50,9 @@ class TwitchApiClient
         return json_decode($response->getBody()->getContents(), true);
     }
 
+    /**
+     * @throws GuzzleException
+     */
     public function getUserInfo(string $accessToken): array
     {
         $response = $this->httpClient->get(self::HELIX_USERS_URL, [

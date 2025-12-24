@@ -3,19 +3,23 @@ declare(strict_types=1);
 
 namespace App\Http\Controller;
 
-use App\Application\Account\Dto\TwitchAuthCommand;
-use App\Application\Account\UseCase\TwitchAuth;
-use App\Infrastructure\Twitch\TwitchApiClient;
+use App\DataClass\Account\Account;
+use App\Lib\Twitch\TwitchApiClient;
+use App\Services\AccountService;
+use JetBrains\PhpStorm\NoReturn;
 use RuntimeException;
+use Throwable;
 
 readonly class AuthController
 {
     public function __construct(
         private TwitchApiClient $twitchApi,
-        private TwitchAuth      $twitchAuth
-    ) {
+        private AccountService  $accountService
+    )
+    {
     }
 
+    #[NoReturn]
     public function login(): void
     {
         $url = $this->twitchApi->getAuthUrl();
@@ -38,33 +42,28 @@ readonly class AuthController
             $tokenExpiresAt = date('Y-m-d H:i:s', time() + $expiresIn);
 
             $userInfo = $this->twitchApi->getUserInfo($accessToken);
-
-            $command = new TwitchAuthCommand(
-                twitchId: (string) $userInfo['id'],
-                login: $userInfo['login'],
-                displayName: $userInfo['display_name'],
-                email: $userInfo['email'] ?? null,
-                avatarUrl: $userInfo['profile_image_url'],
-                accessToken: $accessToken,
-                refreshToken: $refreshToken,
-                tokenExpiresAt: $tokenExpiresAt
-            );
-
-            $result = $this->twitchAuth->execute($command);
-            $account = $result->account;
+            $account = $this->accountService->findByLogin($userInfo['login']);
+            $accountData = $userInfo;
+            if ($account === null) {
+                $accountData['access_token'] = $accessToken;
+                $accountData['refresh_token'] = $refreshToken;
+                $accountData['token_expires_at'] = $tokenExpiresAt;
+                $account = Account::fromArray($accountData);
+                $this->accountService->addAccount($account);
+            }
 
             if (session_status() === PHP_SESSION_NONE) {
                 session_start();
             }
-            $_SESSION['user_id'] = $account->id();
-            $_SESSION['user_login'] = $account->login()->value();
+            $_SESSION['user_id'] = $account->id;
+            $_SESSION['user_login'] = $account->login;
 
             header('Location: /');
             exit;
 
         } catch (RuntimeException $e) {
             die('Auth Error: ' . $e->getMessage());
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             die('System Error: ' . $e->getMessage());
         }
     }
