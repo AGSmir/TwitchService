@@ -31,6 +31,9 @@ class AccountRepository implements AccountRepositoryInterface
         return null;
     }
 
+    /**
+     * @throws Exception
+     */
     public function getById(int $id): ?Account
     {
         $sql = "SELECT * FROM accounts WHERE id = :id";
@@ -109,10 +112,17 @@ class AccountRepository implements AccountRepositoryInterface
      * @param string $login
      * @return Account|null
      * @throws PDOException
+     * @throws Exception
      */
     public function findByLogin(string $login): ?Account
     {
-        // TODO: Implement findByLogin() method.
+        $sql = "SELECT * FROM accounts WHERE login = :login LIMIT 1";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute(['login' => $login]);
+        $result = $stmt->fetch();
+        if ($result) {
+            return Account::fromArray($result);
+        }
         return null;
     }
 }

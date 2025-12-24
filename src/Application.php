@@ -12,8 +12,7 @@ readonly class Application
 {
     public function __construct(
         private ContainerInterface $container
-    ) {
-    }
+    ) {}
 
     /**
      * @throws ContainerExceptionInterface

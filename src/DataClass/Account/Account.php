@@ -23,9 +23,7 @@ final readonly class Account
         public string   $refreshToken,
         public DateTime $tokenExpiresAt,
         public ?int     $id = null,
-    )
-    {
-    }
+    ) {}
 
     /**
      * @throws Exception

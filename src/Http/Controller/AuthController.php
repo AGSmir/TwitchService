@@ -6,7 +6,6 @@ namespace App\Http\Controller;
 use App\DataClass\Account\Account;
 use App\Lib\Twitch\TwitchApiClient;
 use App\Services\AccountService;
-use JetBrains\PhpStorm\NoReturn;
 use RuntimeException;
 use Throwable;
 

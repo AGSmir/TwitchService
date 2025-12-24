@@ -2,58 +2,63 @@
 declare(strict_types=1);
 
 use App\Application;
-use App\Application\Account\UseCase\TwitchAuth;
-use App\Domain\Account\AccountRepositoryInterface;
+use App\Database\DatabaseConfig;
+use App\Services\AccountService;
+use App\Repository\Account\AccountRepositoryInterface;
+use App\Repository\Account\AccountRepository;
 use App\Http\Controller\HomeController;
 use App\Http\Router\Router;
-use App\Infrastructure\Database\ConnectionFactory;
-use App\Infrastructure\Persistence\MySQL\Account\AccountRepository;
-use App\Shared\Container\Container;
+use App\Database\ConnectionFactory;
+use App\Container\Container;
 use App\Http\Controller\AuthController;
-use App\Infrastructure\Twitch\TwitchApiClient;
+use App\Lib\Twitch\TwitchApiClient;
 use GuzzleHttp\Client;
+use Dotenv\Dotenv;
 
 require __DIR__ . '/../vendor/autoload.php';
+Dotenv::createImmutable(__DIR__)->safeLoad();
 
-//define('DB_CONFIG', require __DIR__ . '/../src/config/database.php');
-//
-//$container = new Container();
-//
-//$container->set(PDO::class, function () {
-//    return (new ConnectionFactory())->create();
-//});
-//
-//$container->set(AccountRepositoryInterface::class, function (Container $c) {
-//    return new AccountRepository($c->get(PDO::class));
-//});
-//
-//$container->set(TwitchAuth::class, function (Container $c) {
-//    return new TwitchAuth($c->get(AccountRepositoryInterface::class));
-//});
-//
-//$container->set(TwitchApiClient::class, function (Container $c) {
-//    $config = require __DIR__ . '/../src/config/twitch.php';
-//    return new TwitchApiClient(
-//        $config['clientId'],
-//        $config['clientSecret'],
-//        $config['redirectUri'],
-//        new Client()
-//    );
-//});
-//
-//$container->set(AuthController::class, function (Container $c) {
-//    return new AuthController(
-//        $c->get(TwitchApiClient::class),
-//        $c->get(TwitchAuth::class)
-//    );
-//});
-//
-//$container->set(HomeController::class, function () {
-//    return new HomeController();
-//});
-//
-//$container->set(Router::class, function () {
-//    return new Router();
-//});
-//
-//return new Application($container);
+$container = new Container();
+$container->set(PDO::class, function () {
+    $config = new DatabaseConfig(
+        $_ENV['DB_HOST'],
+        $_ENV['DB_NAME'],
+        $_ENV['DB_USER'],
+        $_ENV['DB_PASS'],
+    );
+    return (new ConnectionFactory())->create($config);
+});
+
+$container->set(AccountRepositoryInterface::class, function (Container $c) {
+    return new AccountRepository($c->get(PDO::class));
+});
+
+$container->set(AccountService::class, function (Container $c) {
+    return new AccountService($c->get(AccountRepositoryInterface::class));
+});
+
+$container->set(TwitchApiClient::class, function () {
+    return new TwitchApiClient(
+        $_ENV['TWITCH_CLIENT_ID'],
+        $_ENV['TWITCH_CLIENT_SECRET'],
+        $_ENV['TWITCH_REDIRECT_URI'],
+        new Client()
+    );
+});
+
+$container->set(AuthController::class, function (Container $c) {
+    return new AuthController(
+        $c->get(TwitchApiClient::class),
+        $c->get(AccountService::class)
+    );
+});
+
+$container->set(HomeController::class, function () {
+    return new HomeController();
+});
+
+$container->set(Router::class, function () {
+    return new Router();
+});
+
+return new Application($container);
